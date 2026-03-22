@@ -19,9 +19,17 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Static Folders
-app.use(express.static(path.join(__dirname, 'public')));
+// Serving only specific directories and files from root to avoid exposing backend code
+app.use('/css', express.static(path.join(__dirname, 'css')));
+app.use('/student', express.static(path.join(__dirname, 'student')));
+app.use('/teacher', express.static(path.join(__dirname, 'teacher')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/python/dataset', express.static(path.join(__dirname, 'python/dataset')));
+
+// Serve the main index.html from root
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
