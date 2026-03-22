@@ -38,10 +38,17 @@ app.use('/api/teacher', require('./routes/teacherRoutes'));
 
 // Database verification route to check if db is connected
 const { pool } = require('./database/db');
-app.get('/api/health', async (req, res) => {
+  app.get('/api/health', async (req, res) => {
   try {
     const result = await pool.query('SELECT NOW()');
-    res.json({ success: true, message: 'Database connected', time: result.rows[0].now });
+    const cameraSource = process.env.CAMERA_SOURCE || '0';
+    res.json({ 
+      success: true, 
+      message: 'System Healthy', 
+      db_connected: true,
+      camera_source: cameraSource,
+      is_cloud: !!process.env.RENDER
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Database connection failed', error: error.message });
   }

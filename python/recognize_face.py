@@ -11,7 +11,13 @@ from threading import Thread
 
 # Threaded class to read frames from camera without blocking
 class VideoStream:
-    def __init__(self, src=0):
+    def __init__(self, src=None):
+        if src is None:
+            # Load from env or default to 0 (local webcam)
+            env_src = os.getenv('CAMERA_SOURCE', '0')
+            # If it's a digit like '0', '1', convert to int for local USB camera
+            src = int(env_src) if env_src.isdigit() else env_src
+            
         self.stream = cv2.VideoCapture(src)
         # Set resolution to 640x480 for optimal performance/latency balance
         self.stream.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
@@ -104,8 +110,8 @@ def recognize_faces():
         rec_thread.start()
         
         # Initialize threaded stream
-        vs = VideoStream(src=0).start()
-        time.sleep(1.0) # Warm up
+        vs = VideoStream().start()
+        time.sleep(2.0) # More warm up for IP cameras
         
         # Throttling parameters (Aim for high fluidity)
         target_fps = 20 
