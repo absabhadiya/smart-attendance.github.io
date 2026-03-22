@@ -41,5 +41,5 @@ ENV PORT=3000
 ENV NODE_ENV=production
 ENV PYTHON_PATH=/usr/bin/python3
 
-# Start the application
-CMD ["node", "server.js"]
+# Start the application with database initialization
+CMD ["sh", "-c", "node scripts/init-db.js && node server.js"]
