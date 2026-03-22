@@ -204,14 +204,6 @@
     .status-indicator { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.7rem; font-weight: 700; padding: 0.35rem 0.85rem; border-radius: 20px; background: #f1f5f9; color: #64748b; margin-left: 1rem; }
     .status-online { background: #ecfdf5 !important; color: #10b981 !important; border: 1px solid #d1fae5; }
     .status-offline { background: #fef2f2 !important; color: #ef4444 !important; border: 1px solid #fee2e2; }
-    .diag-log { margin-top: 1rem; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: #64748b; background: #f8fafc; padding: 1rem; border-radius: 8px; border: 1px solid #e2e8f0; max-height: 120px; overflow-y: auto; text-align: left; position: relative; }
-    .clear-diag { position: absolute; top: 0.5rem; right: 0.5rem; font-size: 0.6rem; cursor: pointer; color: #94a3b8; }
-    .clear-diag:hover { color: #6366f1; }
-    .status-indicator { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.7rem; font-weight: 700; padding: 0.35rem 0.85rem; border-radius: 20px; background: #f1f5f9; color: #64748b; }
-    .status-online { background: #ecfdf5; color: #10b981; border: 1px solid #d1fae5; }
-    .status-offline { background: #fef2f2; color: #ef4444; border: 1px solid #fee2e2; }
-    .diag-log { margin-top: 1rem; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: #64748b; background: #f8fafc; padding: 1rem; border-radius: 8px; border: 1px solid #e2e8f0; max-height: 100px; overflow-y: auto; text-align: left; }
-    .diag-log { margin-top: 1rem; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: #64748b; background: #f8fafc; padding: 1rem; border-radius: 8px; border: 1px solid #e2e8f0; max-height: 100px; overflow-y: auto; text-align: left; }
   </style>
 
 <body ng-controller="AttendanceCtrl">
@@ -356,11 +348,6 @@
             </button>
         </div>
 
-        <div class="diag-log" ng-if="diagEvents.length > 0">
-            <span class="clear-diag" ng-click="diagEvents = []">Clear Logs</span>
-            <div style="font-weight: 800; margin-bottom: 0.5rem; color: #475569;">DIAGNOSTIC EVENT STREAM:</div>
-            <div ng-repeat="e in diagEvents track by $index">[{{e.time}}] {{e.msg}}</div>
-        </div>
     </div>
 
     <!-- Attendance Log (Visible only after session stops) -->
@@ -411,7 +398,6 @@
 
       $scope.subjects = [];
       $scope.socketConnected = false;
-      $scope.diagEvents = [];
       $scope.toasts = [];
 
       $scope.showToast = (data) => {
@@ -431,12 +417,6 @@
           }, 3000);
       };
 
-      const addDiag = (msg) => {
-          $scope.$applyAsync(() => {
-              $scope.diagEvents.unshift({ time: new Date().toLocaleTimeString(), msg });
-              if ($scope.diagEvents.length > 5) $scope.diagEvents.pop();
-          });
-      };
 
       const playBeep = () => {
           try {
@@ -454,18 +434,16 @@
           } catch(e) {}
       };
 
-      socket.on('connect', () => { $scope.$apply(() => { $scope.socketConnected = true; addDiag("System Link Established"); }); });
-      socket.on('disconnect', () => { $scope.$apply(() => { $scope.socketConnected = false; addDiag("System Link Interrupted"); }); });
+      socket.on('connect', () => { $scope.$apply(() => { $scope.socketConnected = true; }); });
+      socket.on('disconnect', () => { $scope.$apply(() => { $scope.socketConnected = false; }); });
 
       socket.on('attendance-marked', (data) => {
           console.log("[DIAGNOSTIC] Database Confirmed:", data);
-          addDiag(`DB CONFIRMED: ${data.name}`);
           // Toast and beep now handled instantly by feed for better UX
       });
 
       socket.on('diagnostic-backend', (data) => {
           console.warn("[DIAGNOSTIC] Backend alert:", data.msg);
-          addDiag(`BACKEND ALERT: ${data.msg}`);
           // If we want a popup for unknown detections
           $scope.showToast({ name: 'System Message', enrollment: data.msg, icon: 'fas fa-exclamation-triangle' });
       });
@@ -595,7 +573,6 @@
 
       $scope.testToast = () => {
           $scope.showToast({ name: 'System Test User', enrollment: 'TEST-MODE' });
-          addDiag("Manual Toast Test Triggered");
       };
 
       $scope.logout = () => { 
@@ -635,7 +612,6 @@
                         // INSTANT POPUP (Directly from vision feed)
                         $scope.showToast({ name: sname, enrollment: enrollment });
                         playBeep();
-                        addDiag(`Instant Detection: ${sname}`);
 
                         $scope.recognized.unshift({ 
                             name: sname, 

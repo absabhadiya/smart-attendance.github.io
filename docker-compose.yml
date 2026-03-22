@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: attendance_db_container
+    restart: always
+    environment:
+      - POSTGRES_USER=${DB_USER:-postgres}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-Aryan@09}
+      - POSTGRES_DB=${DB_NAME:-attendance_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+
+  app:
+    build: .
+    container_name: attendance_app_container
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=${DB_NAME:-attendance_db}
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:-Aryan@09}
+      - JWT_SECRET=${JWT_SECRET:-super_secret_jwt_key_2024}
+      - EMAIL_USER=${EMAIL_USER}
+      - EMAIL_PASS=${EMAIL_PASS}
+      - PYTHON_PATH=/usr/bin/python3
+    depends_on:
+      - db
+    volumes:
+      - ./python/dataset:/app/python/dataset
+      - ./uploads:/app/uploads
+      # Re-mounting the camera (Linux-specific, for hardware access in Docker)
+      # WARNING: This may require additional configuration on Windows (WSL2)
+      # devices:
+      #   - "/dev/video0:/dev/video0"
+
+volumes:
+  postgres_data:
