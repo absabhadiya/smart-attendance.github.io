@@ -116,7 +116,7 @@ def recognize_faces():
         # Throttling parameters (Aim for high fluidity)
         target_fps = 20 
         frame_interval = 1.0 / target_fps
-        last_frame_time = 0
+        last_frame_time = 0.0
 
         while True:
             frame = vs.read()
